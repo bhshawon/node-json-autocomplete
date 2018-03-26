@@ -3,7 +3,7 @@
     "displayName": "node-json-autocomplete",
     "description": "Provide autocomplete for JSON files imported in javascript",
     "version": "0.0.1",
-    "publisher": "Shawon",
+    "publisher": "bhshawon",
     "engines": {
         "vscode": "^1.21.0"
     },
