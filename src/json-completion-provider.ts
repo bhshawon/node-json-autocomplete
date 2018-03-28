@@ -6,7 +6,8 @@ import {
   CompletionItemKind,
   CancellationToken,
   CompletionContext,
-  workspace
+  workspace,
+  Range
 } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -22,9 +23,17 @@ export class JsonCompletionProvider implements CompletionItemProvider {
   }
 
   getJsonCompletionItems(document: TextDocument, position: Position, jsons: Object): CompletionItem[] {
-    const jsonSequenceRegex = /(\s*\w[\w\d_-]+\.)+/;
-    const jsonSequenceRange = document.getWordRangeAtPosition(position, jsonSequenceRegex);
-    const jsonSequenceText = document.getText(jsonSequenceRange);
+    const jsonSequenceRegex = /([\w\d-_$]+(\s*\.\s*[\w\d-_$]+\s*)*)\s*\.$/;
+    const rangeFromStart = new Range(new Position(0, 0), position);
+    const textFromStart = document.getText(rangeFromStart);
+    const positionWordRange = document.getWordRangeAtPosition(position);
+    const jsonSequenceMatch = textFromStart.match(jsonSequenceRegex);
+
+    if (!jsonSequenceMatch) {
+      return null;
+    }
+
+    const jsonSequenceText = jsonSequenceMatch[0];
 
     const jsonSequence = jsonSequenceText.split('.').map(str => str.trim());
     const propertySequence = jsonSequence.slice(0, -1);
