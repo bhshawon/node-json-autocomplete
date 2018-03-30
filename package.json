@@ -29,12 +29,13 @@
     },
     "devDependencies": {
         "@types/mocha": "^2.2.42",
-        "@types/node": "^7.0.57",
+        "@types/node": "^8",
         "tslint": "^5.8.0",
-        "typescript": "^2.6.1",
+        "typescript": "^2.8.1",
         "vscode": "^1.1.6"
     },
     "dependencies": {
-        "json-source-map": "^0.4.0"
+        "json-source-map": "^0.4.0",
+        "lodash": "^4.17.5"
     }
 }
