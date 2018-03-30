@@ -2,7 +2,7 @@
     "name": "node-json-autocomplete",
     "displayName": "Node JSON Autocomplete",
     "description": "Provide autocomplete for JSON files imported in javascript",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "bhshawon",
     "engines": {
         "vscode": "^1.21.0"
