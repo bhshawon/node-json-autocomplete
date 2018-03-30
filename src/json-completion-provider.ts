@@ -9,7 +9,8 @@ import {
   workspace,
   Range
 } from 'vscode';
-import * as path from 'path';
+import { getImportedJsonPaths } from './utils';
+import { mapValues } from 'lodash';
 import * as fs from 'fs';
 
 export class JsonCompletionProvider implements CompletionItemProvider {
@@ -26,7 +27,6 @@ export class JsonCompletionProvider implements CompletionItemProvider {
     const jsonSequenceRegex = /([\w\d-_$]+(\s*\.\s*[\w\d-_$]+\s*)*)\s*\.$/;
     const rangeFromStart = new Range(new Position(0, 0), position);
     const textFromStart = document.getText(rangeFromStart);
-    const positionWordRange = document.getWordRangeAtPosition(position);
     const jsonSequenceMatch = textFromStart.match(jsonSequenceRegex);
 
     if (!jsonSequenceMatch) {
@@ -62,28 +62,8 @@ export class JsonCompletionProvider implements CompletionItemProvider {
   }
 
   getImportedJsons(document: TextDocument): Object {
-    const jsons = {};
-    const importRegexGlobal = /[\w_$]*[\w\d_\-$]+\s*=\s*require\s*\(\s*'.*\.json'\s*\)|import\s+[\w_$]*[\w\d_\-$]+\s+from\s+'.*\.json'/g;
-    const importRegex = /([\w_$]*[\w\d_\-$]+)\s*=\s*require\s*\(\s*'(.*\.json)'\s*|import\s+([\w_$]*[\w\d_\-$]+)\s+from\s+'(.*\.json)'/;
+    const jsonPaths = getImportedJsonPaths(document);
 
-    const documentText = document.getText();
-
-    const importedJsons = documentText.match(importRegexGlobal);
-    if (Array.isArray(importedJsons)) {
-      importedJsons.forEach(importText => {
-        const importTextMatch = importText.match(importRegex);
-        const jsonName = importTextMatch[1] || importTextMatch[3];
-        const jsonPath = importTextMatch[2] || importTextMatch[4];
-
-        const jsonAbsolutePath = jsonPath.startsWith('.')
-          ? path.join(path.dirname(document.uri.fsPath), jsonPath)
-          : jsonPath;
-
-        jsons[jsonName] = require(jsonAbsolutePath);
-      });
-    }
-
-    return jsons;
+    return mapValues(jsonPaths, value => require(value));
   }
-
 }

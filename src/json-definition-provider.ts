@@ -1,5 +1,5 @@
 import { DefinitionProvider, TextDocument, Position, ReferenceContext, CancellationToken, Location, Uri, Range } from 'vscode';
-import * as path from 'path';
+import { getImportedJsonPaths } from './utils';
 import { readFileSync } from 'fs';
 import { parse, stringify } from 'json-source-map';
 
@@ -11,7 +11,7 @@ export class JsonDefinitionProvider implements DefinitionProvider {
       return null;
     }
 
-    const importedJsonPaths = this.getImportedJsonPaths(document);
+    const importedJsonPaths = getImportedJsonPaths(document);
 
     const jsonPath = importedJsonPaths[jsonSequence[0]];
 
@@ -43,7 +43,7 @@ export class JsonDefinitionProvider implements DefinitionProvider {
     return null;
   }
 
-  getJsonSequence(document: TextDocument, position: Position) {
+  getJsonSequence(document: TextDocument, position: Position): Array<string> | null {
     const wordRange = document.getWordRangeAtPosition(position);
     const rangeFromStart = new Range(new Position(0, 0), wordRange.end);
     const textFromStart = document.getText(rangeFromStart);
@@ -63,30 +63,5 @@ export class JsonDefinitionProvider implements DefinitionProvider {
       .map(word => word.trim());
 
     return jsonSequence;
-  }
-
-  getImportedJsonPaths(document: TextDocument): Object {
-    const jsonPaths = {};
-    const importRegexGlobal = /[\w_$]*[\w\d_\-$]+\s*=\s*require\s*\(\s*'.*\.json'\s*\)|import\s+[\w_$]*[\w\d_\-$]+\s+from\s+'.*\.json'/g;
-    const importRegex = /([\w_$]*[\w\d_\-$]+)\s*=\s*require\s*\(\s*'(.*\.json)'\s*|import\s+([\w_$]*[\w\d_\-$]+)\s+from\s+'(.*\.json)'/;
-
-    const documentText = document.getText();
-
-    const importedJsons = documentText.match(importRegexGlobal);
-    if (Array.isArray(importedJsons)) {
-      importedJsons.forEach(importText => {
-        const importTextMatch = importText.match(importRegex);
-        const jsonName = importTextMatch[1] || importTextMatch[3];
-        const jsonPath = importTextMatch[2] || importTextMatch[4];
-
-        const jsonAbsolutePath = jsonPath.startsWith('.')
-          ? path.join(path.dirname(document.uri.fsPath), jsonPath)
-          : jsonPath;
-
-        jsonPaths[jsonName] = jsonAbsolutePath;
-      });
-    }
-
-    return jsonPaths;
   }
 }
