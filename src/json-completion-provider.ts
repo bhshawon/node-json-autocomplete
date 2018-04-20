@@ -11,7 +11,7 @@ import {
 } from 'vscode';
 import { getImportedJsonPaths } from './utils';
 import { mapValues } from 'lodash';
-import * as fs from 'fs';
+import { readFileSync } from 'fs';
 
 export class JsonCompletionProvider implements CompletionItemProvider {
   label: string;
@@ -64,6 +64,9 @@ export class JsonCompletionProvider implements CompletionItemProvider {
   getImportedJsons(document: TextDocument): Object {
     const jsonPaths = getImportedJsonPaths(document);
 
-    return mapValues(jsonPaths, value => require(value));
+    return mapValues(jsonPaths, value => {
+      const jsonString = readFileSync(value, 'utf-8');
+      return JSON.parse(jsonString);
+    });
   }
 }
