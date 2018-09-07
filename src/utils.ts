@@ -1,10 +1,11 @@
 import { TextDocument, Position, Range } from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export function getImportedJsonPaths(document: TextDocument): Object {
   const jsonPaths = {};
-  const importRegexGlobal = /[\w_$]*[\w\d_\-$]+\s*=\s*require\s*\(\s*'.*\.json'\s*\)|import\s+[\w_$]*[\w\d_\-$]+\s+from\s+'.*\.json'/g;
-  const importRegex = /([\w_$]*[\w\d_\-$]+)\s*=\s*require\s*\(\s*'(.*\.json)'\s*|import\s+([\w_$]*[\w\d_\-$]+)\s+from\s+'(.*\.json)'/;
+  const importRegexGlobal = /[\w_$]*[\w\d_\-$]+\s*=\s*require\s*\(\s*'.*'\s*\)|import\s+[\w_$]*[\w\d_\-$]+\s+from\s+'.*'/g;
+  const importRegex = /([\w_$]*[\w\d_\-$]+)\s*=\s*require\s*\(\s*'(.*)'\s*|import\s+([\w_$]*[\w\d_\-$]+)\s+from\s+'(.*)'/;
 
   const documentText = document.getText();
 
@@ -19,9 +20,20 @@ export function getImportedJsonPaths(document: TextDocument): Object {
         ? path.join(path.dirname(document.uri.fsPath), jsonPath)
         : jsonPath;
 
-      jsonPaths[jsonName] = jsonAbsolutePath;
+      if (isJsonFile(jsonAbsolutePath)) {
+        jsonPaths[jsonName] = jsonAbsolutePath;
+      }
     });
   }
 
   return jsonPaths;
+}
+
+
+function isJsonFile(absolutePath: string): boolean {
+  const absolutePathWithExtension = absolutePath.endsWith('.json')
+    ? absolutePath
+    : absolutePath + '.json';
+
+  return fs.existsSync(absolutePathWithExtension);
 }
